@@ -63,6 +63,9 @@ const PropertySchema = new mongoose.Schema({
   image: { type: String }, // single image filename or path
   created_at: { type: Date, default: Date.now }
 });
+app.get("/", (req, res) => {
+  res.send("Server is up and running!");
+});
 const Property = mongoose.model('Property', PropertySchema);
 // Register User
 app.post('/register', async (req, res) => {
