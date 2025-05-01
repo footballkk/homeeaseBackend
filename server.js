@@ -40,8 +40,12 @@ const upload = multer({
   fileFilter: fileFilter,
 }).single('image');  // 'image' refers to the name attribute of the <input type="file" /> field
 // Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log('MongoDB Connected')).catch(err => console.log(err));
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log("MongoDB connected"))
+.catch((err) => console.error("MongoDB connection error:", err));
 // User Schema
 const UserSchema = new mongoose.Schema({
   full_name: String,
