@@ -112,38 +112,41 @@ app.post('/login', async (req, res) => {
 // Add Property (Seller only) with image upload
 // const upload = multer({ storage: storage, fileFilter: fileFilter}); // ✅ this line creates the actual upload instance
 app.post('/properties', upload, async (req, res) => {
-  console.log('File received:', req.file);
-  console.log('Form body:', req.body);
+  console.log('File received:', req.file);  // Ensure this logs the file information
+  console.log('Form body:', req.body);  // Ensure this logs the form fields
+  
   try {
-    const {
-      seller_id,
-      title,
-      location,
-      size,
-      description,
-      type,
-      minPrice,
-      maxPrice
-    } = req.body;
-    const imageUrl = req.file ? req.file.secure_url : '';  // Use Cloudinary URL
-    const newProperty = new Property({
-      seller_id,
-      title,
-      location,
-      size,
-      description,
-      type,
-      minPrice,
-      maxPrice,
-      image: imageUrl, // Store the Cloudinary URL in the database
-      created_at: new Date()
-    });
-    const saved = await newProperty.save();
-    console.log('Saved property:', saved);
-    res.status(201).json({ message: 'Property added successfully', property: saved });
+     const {
+        seller_id,
+        title,
+        location,
+        size,
+        description,
+        type,
+        minPrice,
+        maxPrice
+     } = req.body;
+
+     // Cloudinary URL is automatically set in req.file.path, ensure it's correct
+     const imageUrl = req.file ? req.file.path : '';  // This should be the Cloudinary URL now
+     const newProperty = new Property({
+        seller_id,
+        title,
+        location,
+        size,
+        description,
+        type,
+        minPrice,
+        maxPrice,
+        image: imageUrl,  // Save Cloudinary URL here
+        created_at: new Date()
+     });
+     const saved = await newProperty.save();
+     console.log('Saved property:', saved);  // Ensure this logs the property with Cloudinary URL
+     res.status(201).json({ message: 'Property added successfully', property: saved });
   } catch (err) {
-    console.error('Error saving property:', err);
-    res.status(400).json({ error: 'Failed to save property', details: err.message });
+     console.error('Error saving property:', err);  // Logs any error during save
+     res.status(400).json({ error: 'Failed to save property', details: err.message });
   }
 });
 // POST /properties - add new property
