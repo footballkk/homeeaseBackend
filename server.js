@@ -1,4 +1,7 @@
 // Import dependencies
+const cloudinary = require('cloudinary').v2;
+const multerStorageCloudinary = require('multer-storage-cloudinary').CloudinaryStorage;
+// Configure Cloudinary with your environment variables
 const multer = require('multer');
 const path = require('path');
 const express = require('express');
@@ -15,14 +18,20 @@ app.use(cors());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // node server
 // Define storage for images (you can customize the folder and naming conventions)
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');  // 'uploads/' folder will store the images
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // Naming the image with timestamp
-  },
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
+const storage = new multerStorageCloudinary({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'property_images', // Folder in Cloudinary where images will be stored
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'], // Allowed file formats
+    transformation: [{ width: 500, height: 500, crop: 'limit' }] // Optional image resizing
+  }
+});
+const upload = multer({ storage: storage }).single('image'); 
 // Filter to ensure only image files are uploaded
 const fileFilter = (req, file, cb) => {
   const filetypes = /jpeg|jpg|png|gif|webp|bmp|jfif/;
@@ -35,10 +44,10 @@ const fileFilter = (req, file, cb) => {
   }
 };
 // Create the upload function using multer
-const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-}).single('image');  // 'image' refers to the name attribute of the <input type="file" /> field
+// const upload = multer({
+//   storage: storage,
+//   fileFilter: fileFilter,
+// }).single('image');  // 'image' refers to the name attribute of the <input type="file" /> field
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
@@ -116,7 +125,7 @@ app.post('/properties', upload, async (req, res) => {
       minPrice,
       maxPrice
     } = req.body;
-    const imagePath = req.file ? `/uploads/${req.file.filename}` : '';
+    const imageUrl = req.file ? req.file.path : ''; // Cloudinary URL for the uploaded image
     const newProperty = new Property({
       seller_id,
       title,
@@ -126,7 +135,7 @@ app.post('/properties', upload, async (req, res) => {
       type,
       minPrice,
       maxPrice,
-      image: imagePath,
+      image: imageUrl,
       created_at: new Date()
     });
     const saved = await newProperty.save();
