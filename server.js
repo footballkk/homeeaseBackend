@@ -125,7 +125,7 @@ app.post('/properties', upload, async (req, res) => {
       minPrice,
       maxPrice
     } = req.body;
-    const imageUrl = req.file ? req.file.path : ''; // Cloudinary URL for the uploaded image
+    const imageUrl = req.file ? req.file.secure_url : '';  // Use Cloudinary URL
     const newProperty = new Property({
       seller_id,
       title,
@@ -135,7 +135,7 @@ app.post('/properties', upload, async (req, res) => {
       type,
       minPrice,
       maxPrice,
-      image: imageUrl,
+      image: imageUrl, // Store the Cloudinary URL in the database
       created_at: new Date()
     });
     const saved = await newProperty.save();
