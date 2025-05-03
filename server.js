@@ -31,7 +31,6 @@ const storage = new multerStorageCloudinary({
     transformation: [{ width: 500, height: 500, crop: 'limit' }] // Optional image resizing
   }
 });
-const upload = multer({ storage: storage }).single('image'); 
 // Filter to ensure only image files are uploaded
 const fileFilter = (req, file, cb) => {
   const filetypes = /jpeg|jpg|png|gif|webp|bmp|jfif/;
@@ -43,6 +42,7 @@ const fileFilter = (req, file, cb) => {
     cb('Error: Only image files are allowed!');
   }
 };
+const upload = multer({ storage: storage, fileFilter }).single('image'); 
 // Create the upload function using multer
 // const upload = multer({
 //   storage: storage,
@@ -68,6 +68,7 @@ const User = mongoose.model('User', UserSchema);
 const PropertySchema = new mongoose.Schema({
   seller_id: { type: mongoose.Schema.Types.ObjectId, required: true },
   type: { type: String, required: true }, // apartment, house, villa
+  title: { type: String, required: true },
   location: { type: String, required: true },
   size: { type: String, required: true },
   minPrice: { type: Number, required: true },
@@ -118,21 +119,20 @@ app.post('/properties', upload, async (req, res) => {
   try {
      const {
         seller_id,
-        title,
         location,
+        title,
         size,
         description,
         type,
         minPrice,
         maxPrice
      } = req.body;
-
      // Cloudinary URL is automatically set in req.file.path, ensure it's correct
      const imageUrl = req.file ? req.file.path : '';  // This should be the Cloudinary URL now
      const newProperty = new Property({
         seller_id,
-        title,
         location,
+        title,
         size,
         description,
         type,
