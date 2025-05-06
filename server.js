@@ -1,9 +1,3 @@
-app.use(cors({
-  origin: 'https://topiaminageba.vercel.app',
-  methods: ['GET', 'POST', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
 const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
@@ -13,8 +7,14 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const Property = require('./models/Property');
 const propertyRoutes = require('./routes/propertyRoutes');
-const app = express();
 const paymentRoutes = require('./routes/paymentRoutes');
+const app = express();
+app.use(cors({
+  origin: 'https://topiaminageba.vercel.app',
+  methods: ['GET', 'POST', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 app.use('/api', paymentRoutes);
 app.use('/api', propertyRoutes);
 app.use(express.urlencoded({ extended: true }));
