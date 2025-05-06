@@ -1,4 +1,3 @@
-
 const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
@@ -33,7 +32,7 @@ const UserSchema = new mongoose.Schema({
 });
 const User = mongoose.model('User', UserSchema);
 // Property Schema
-const Property = mongoose.model('Property', PropertySchema);
+// const Property = mongoose.model('Property', PropertySchema);
 // Register User
 app.post('/register', async (req, res) => {
   try {

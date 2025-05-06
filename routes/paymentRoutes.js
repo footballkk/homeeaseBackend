@@ -7,9 +7,6 @@ router.post('/create-payment', async (req, res) => {
   const { email, amount, first_name, last_name, tx_ref } = req.body;
 
   try {
-    const nameParts = full_name.trim().split(' ');
-     const first_name = nameParts[0];
-     const last_name = nameParts.slice(1).join(' ') || 'N/A';
      const response = await axios.post('https://api.chapa.co/v1/transaction/initialize', {
       email,
       amount,
