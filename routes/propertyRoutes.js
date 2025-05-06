@@ -1,3 +1,4 @@
+const path = require('path');  // Add this import at the top of the file
 const cloudinary = require('cloudinary').v2;
 const multerStorageCloudinary = require('multer-storage-cloudinary').CloudinaryStorage;
 const multer = require('multer');
