@@ -13,7 +13,7 @@ router.post('/create-payment', async (req, res) => {
       first_name,
       last_name,
       tx_ref,
-      callback_url: 'https://your-frontend-url.com/payment-success'
+      callback_url: 'https://topiaminageba.vercel.app/payment-success'
     }, {
       headers: {
         Authorization: `Bearer ${process.env.CHAPA_SECRET_KEY}`,
