@@ -5,7 +5,6 @@ require('dotenv').config();
 
 router.post('/create-payment', async (req, res) => {
   const { email, amount, first_name, last_name, tx_ref } = req.body;
-
   try {
      const response = await axios.post('https://api.chapa.co/v1/transaction/initialize', {
       email,

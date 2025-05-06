@@ -9,7 +9,7 @@ const Property = require('./models/Property');
 const propertyRoutes = require('./routes/propertyRoutes');
 const app = express();
 const paymentRoutes = require('./routes/paymentRoutes');
-app.use('/api/payments', paymentRoutes);
+app.use('/api/create-payment', paymentRoutes);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors());
