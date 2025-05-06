@@ -1,3 +1,9 @@
+app.use(cors({
+  origin: 'https://topiaminageba.vercel.app',
+  methods: ['GET', 'POST', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
@@ -13,7 +19,6 @@ app.use('/api', paymentRoutes);
 app.use('/api', propertyRoutes);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(cors());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Filter to ensure only image files are uploaded
 mongoose.connect(process.env.MONGO_URI, {
