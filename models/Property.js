@@ -12,4 +12,4 @@ const PropertySchema = new mongoose.Schema({
   image: { type: String }, // single image filename or path
   created_at: { type: Date, default: Date.now }
 });
-module.exports = mongoose.model('Property', propertySchema);
+module.exports = mongoose.model('Property', PropertySchema);
