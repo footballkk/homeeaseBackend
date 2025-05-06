@@ -9,12 +9,12 @@ const Property = require('./models/Property');
 const propertyRoutes = require('./routes/propertyRoutes');
 const app = express();
 const paymentRoutes = require('./routes/paymentRoutes');
-app.use('/api/create-payment', paymentRoutes);
+app.use('/api', paymentRoutes);
+app.use('/api/properties', propertyRoutes);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/api/properties', propertyRoutes);
 // Filter to ensure only image files are uploaded
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
