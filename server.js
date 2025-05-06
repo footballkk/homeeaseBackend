@@ -10,7 +10,7 @@ const propertyRoutes = require('./routes/propertyRoutes');
 const app = express();
 const paymentRoutes = require('./routes/paymentRoutes');
 app.use('/api', paymentRoutes);
-app.use('/api/properties', propertyRoutes);
+app.use('/api', propertyRoutes);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors());

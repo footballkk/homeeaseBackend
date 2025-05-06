@@ -36,7 +36,7 @@ const upload = multer({
   fileFilter: fileFilter
 }); // Create multer upload middleware using this storage
 // ==================== POST /properties ====================
-router.post('/', upload.single('image'), async (req, res) => {
+router.post('/properties', upload.single('image'), async (req, res) => {
   console.log('File received:', req.file);  // Ensure this logs the file information
   console.log('Form body:', req.body);  // Ensure this logs the form fields
   try {
@@ -73,7 +73,7 @@ router.post('/', upload.single('image'), async (req, res) => {
   }
 });
 // ==================== GET /properties (with filtering, sorting, pagination) ====================
-router.get('/', async (req, res) => {
+router.get('/properties', async (req, res) => {
   const {
     location,
     minPrice,
