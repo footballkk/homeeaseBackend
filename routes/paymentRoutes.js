@@ -3,7 +3,7 @@ const router = express.Router();
 const axios = require('axios');
 require('dotenv').config();
 
-router.post('/create-payment', async (req, res) => {
+router.post('/api/create-payment', async (req, res) => {
   const { email, amount, full_name, tx_ref } = req.body;
 
   // Split full name into first and last name
