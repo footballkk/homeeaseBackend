@@ -28,6 +28,7 @@ app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ✅ Apply routes
+app.use('/api',  Property);
 app.use('/api', paymentRoutes);  // Payment routes
 app.use('/api', propertyRoutes);  // Property routes
 

@@ -12,7 +12,6 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-
 const fileFilter = (req, file, cb) => {
   const filetypes = /jpeg|jpg|png|gif|webp|bmp|jfif/;
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
@@ -37,7 +36,7 @@ const upload = multer({
   fileFilter: fileFilter
 }); // Create multer upload middleware using this storage
 // ==================== POST /properties ====================
-router.post('/properties', upload.single('image'), async (req, res) => {
+router.post('/properties', upload, async (req, res) => {
   console.log('File received:', req.file);  // Ensure this logs the file information
   console.log('Form body:', req.body);  // Ensure this logs the form fields
   try {
