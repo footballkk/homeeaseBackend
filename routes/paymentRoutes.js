@@ -1,36 +1,21 @@
 const express = require('express');
 const router = express.Router();
-const axios = require('axios');
-require('dotenv').config();
 
+// Mock version of payment route for development or fallback use
 router.post('/api/create-payment', async (req, res) => {
   const { email, amount, full_name, tx_ref } = req.body;
 
-  // Split full name into first and last name
-  const [first_name, ...rest] = full_name.trim().split(' ');
-  const last_name = rest.join(' ') || 'Unknown';
-
-  try {
-    const response = await axios.post('https://api.chapa.co/v1/transaction/initialize', {
+  // Simulate success response from Chapa
+  return res.json({
+    message: 'Mock payment initialized successfully',
+    data: {
+      checkout_url: `https://mock-checkout.com/success/${tx_ref}`,
+      tx_ref,
       email,
       amount,
-      currency: 'ETB',
-      first_name,
-      last_name,
-      tx_ref,
-      callback_url: `https://topiaminageba.vercel.app/payment-success/${tx_ref}`
-    }, {
-      headers: {
-        Authorization: `Bearer ${process.env.CHAPA_SECRET_KEY}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    res.json(response.data);
-  } catch (error) {
-    console.error('Payment error:', error.response?.data || error.message);
-    res.status(500).json({ error: 'Payment initialization failed' });
-  }
+      full_name
+    }
+  });
 });
 
 module.exports = router;
