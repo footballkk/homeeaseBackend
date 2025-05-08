@@ -1,40 +1,50 @@
-const cloudinary = require('cloudinary').v2;
-const multerStorageCloudinary = require('multer-storage-cloudinary').CloudinaryStorage;
-const path = require('path');
-const multer = require('multer');
+// ========================
+// 🔹 Imports & Config
+// ========================
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const dotenv = require('dotenv');
+const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
-// const propertyRoutes = require('./routes/propertyRoutes');
-const paymentRoutes = require('./routes/paymentRoutes');
+const multer = require('multer');
+const { v2: cloudinary } = require('cloudinary');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+// Load environment variables
+dotenv.config();
+
+// ========================
+// 🔹 App Initialization
+// ========================
 const app = express();
-// ✅ CORS setup before any routes or middleware
+
+// ========================
+// 🔹 Middleware
+// ========================
 app.use(cors({
-  origin: 'https://topiaminageba.vercel.app',  // Allow the frontend domain
+  origin: 'https://topiaminageba.vercel.app',
   methods: ['GET', 'POST', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
-const PropertySchema = new mongoose.Schema({
-  seller_id: { type: mongoose.Schema.Types.ObjectId, required: true },
-  type: { type: String, required: true }, // apartment, house, villa
-  title: { type: String, required: true },
-  location: { type: String, required: true },
-  size: { type: String, required: true },
-  minPrice: { type: Number, required: true },
-  maxPrice: { type: Number, required: true },
-  description: { type: String, required: true },
-  image: { type: String }, // single image filename or path
-  created_at: { type: Date, default: Date.now }
-});
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+// ========================
+// 🔹 Cloudinary Config
+// ========================
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
+// ========================
+// 🔹 Multer + Cloudinary Storage
+// ========================
 const fileFilter = (req, file, cb) => {
   const filetypes = /jpeg|jpg|png|gif|webp|bmp|jfif/;
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
@@ -45,35 +55,35 @@ const fileFilter = (req, file, cb) => {
     cb('Error: Only image files are allowed!');
   }
 };
-// Multer Storage Setup for Cloudinary
-const storage = new multerStorageCloudinary({
+
+const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: 'property_images', // Folder in Cloudinary where images will be stored
-    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'], // Allowed file formats
-    transformation: [{ width: 500, height: 500, crop: 'limit' }] // Optional image resizing
+    folder: 'property_images',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+    transformation: [{ width: 500, height: 500, crop: 'limit' }]
   }
 });
-const upload = multer({ 
-  storage: storage,
-  fileFilter: fileFilter
+
+const upload = multer({ storage: storage, fileFilter: fileFilter });
+
+// ========================
+// 🔹 MongoDB Models
+// ========================
+const PropertySchema = new mongoose.Schema({
+  seller_id: { type: mongoose.Schema.Types.ObjectId, required: true },
+  type: { type: String, required: true },
+  title: { type: String, required: true },
+  location: { type: String, required: true },
+  size: { type: String, required: true },
+  minPrice: { type: Number, required: true },
+  maxPrice: { type: Number, required: true },
+  description: { type: String, required: true },
+  image: { type: String },
+  created_at: { type: Date, default: Date.now }
 });
-// ✅ Use express.json() and express.urlencoded() before route handling
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-// ✅ Serve static files (uploads)
-// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-// ✅ Apply routes
-app.use('/api', paymentRoutes);  // Payment routes
-// app.use('/api', propertyRoutes);  // Property routes
-// ✅ Connect to MongoDB after setting up middleware
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log("MongoDB connected"))
-.catch((err) => console.error("MongoDB connection error:", err));
-// User Schema
+const Property = mongoose.model('Property', PropertySchema);
+
 const UserSchema = new mongoose.Schema({
   full_name: String,
   email: { type: String, unique: true },
@@ -82,7 +92,16 @@ const UserSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now }
 });
 const User = mongoose.model('User', UserSchema);
-// Register User
+
+// ========================
+// 🔹 Routes
+// ========================
+const paymentRoutes = require('./routes/paymentRoutes');
+app.use('/api', paymentRoutes);
+
+// ========================
+// 🔹 Auth Routes
+// ========================
 app.post('/register', async (req, res) => {
   try {
     const { full_name, email, password, role } = req.body;
@@ -95,7 +114,7 @@ app.post('/register', async (req, res) => {
     console.log(req.body);
   }
 });
-// Login User
+
 app.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -109,52 +128,79 @@ app.post('/login', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-// Fetch Users
+
+// ========================
+// 🔹 User Routes
+// ========================
 app.get('/users', async (req, res) => {
   try {
-    const users = await User.find();  // Fetch all users
-    res.json(users);  // Return the users as a response
+    const users = await User.find();
+    res.json(users);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
-app.post('/properties', upload.single('image'), async (req, res) => {
-  console.log('File received:', req.file);  // Ensure this logs the file information
-  console.log('Form body:', req.body);  // Ensure this logs the form fields
+
+app.delete('/users/:email', async (req, res) => {
   try {
-     const {
-        seller_id,
-        location,
-        title,
-        size,
-        description,
-        type,
-        minPrice,
-        maxPrice
-     } = req.body;
-     // Cloudinary URL is automatically set in req.file.path, ensure it's correct
-     const imageUrl = req.file ? req.file.path : '';  // This should be the Cloudinary URL now
-     const newProperty = new Property({
-        seller_id,
-        location,
-        title,
-        size,
-        description,
-        type,
-        minPrice,
-        maxPrice,
-        image: imageUrl,  // Save Cloudinary URL here
-        created_at: new Date()
-     });
-     const saved = await newProperty.save();
-     console.log('Saved property:', saved);  // Ensure this logs the property with Cloudinary URL
-     res.status(201).json({ message: 'Property added successfully', property: saved });
+    const result = await User.deleteOne({ email: req.params.email });
+    res.json({ message: 'User deleted successfully', result });
   } catch (err) {
-     console.error('Error saving property:', err);  // Logs any error during save
-     res.status(400).json({ error: 'Failed to save property', details: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
-//get the posted property also back!
+
+app.delete('/users', async (req, res) => {
+  try {
+    const result = await User.deleteMany({});
+    res.json({ message: 'All users deleted successfully', result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ========================
+// 🔹 Property Routes
+// ========================
+app.post('/properties', upload.single('image'), async (req, res) => {
+  console.log('File received:', req.file);
+  console.log('Form body:', req.body);
+  try {
+    const {
+      seller_id,
+      location,
+      title,
+      size,
+      description,
+      type,
+      minPrice,
+      maxPrice
+    } = req.body;
+
+    const imageUrl = req.file ? req.file.path : '';
+
+    const newProperty = new Property({
+      seller_id,
+      location,
+      title,
+      size,
+      description,
+      type,
+      minPrice,
+      maxPrice,
+      image: imageUrl,
+      created_at: new Date()
+    });
+
+    const saved = await newProperty.save();
+    console.log('Saved property:', saved);
+    res.status(201).json({ message: 'Property added successfully', property: saved });
+  } catch (err) {
+    console.error('Error saving property:', err);
+    res.status(400).json({ error: 'Failed to save property', details: err.message });
+  }
+});
+
 app.get('/properties', async (req, res) => {
   const {
     location,
@@ -167,6 +213,7 @@ app.get('/properties', async (req, res) => {
     page = 1,
     limit = 10
   } = req.query;
+
   let filter = {};
   if (location) filter.location = { $regex: location, $options: 'i' };
   if (minPrice || maxPrice) {
@@ -175,9 +222,11 @@ app.get('/properties', async (req, res) => {
   }
   if (size) filter.size = { $regex: size, $options: 'i' };
   if (type) filter.type = { $regex: type, $options: 'i' };
+
   const sortOptions = {};
   if (sortBy) sortOptions[sortBy] = order === 'desc' ? -1 : 1;
   const skip = (page - 1) * limit;
+
   try {
     const properties = await Property.find(filter)
       .sort(sortOptions)
@@ -188,25 +237,7 @@ app.get('/properties', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch properties', details: error.message });
   }
 });
-// Delete user by ema
-app.delete('/users/:email', async (req, res) => {
-  try {
-    const result = await User.deleteOne({ email: req.params.email });
-    res.json({ message: 'User deleted successfully', result });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-// Delete all users
-app.delete('/users', async (req, res) => {
-  try {
-    const result = await User.deleteMany({});
-    res.json({ message: 'All users deleted successfully', result });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-// Delete all properties
+
 app.delete('/properties', async (req, res) => {
   try {
     const result = await Property.deleteMany({});
@@ -215,6 +246,16 @@ app.delete('/properties', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-// Start server
+
+// ========================
+// 🔹 Connect to MongoDB & Start Server
+// ========================
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log("MongoDB connected"))
+.catch((err) => console.error("MongoDB connection error:", err));
+
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
