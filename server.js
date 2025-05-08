@@ -62,7 +62,7 @@ app.use(express.json());
 // app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // ✅ Apply routes
 app.use('/api', paymentRoutes);  // Payment routes
-app.use('/api', propertyRoutes);  // Property routes
+// app.use('/api', propertyRoutes);  // Property routes
 // ✅ Connect to MongoDB after setting up middleware
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
@@ -185,7 +185,7 @@ app.get('/properties', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch properties', details: error.message });
   }
 });
-// Delete user by email
+// Delete user by ema
 app.delete('/users/:email', async (req, res) => {
   try {
     const result = await User.deleteOne({ email: req.params.email });
