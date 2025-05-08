@@ -1,3 +1,5 @@
+const cloudinary = require('cloudinary').v2;
+const multerStorageCloudinary = require('multer-storage-cloudinary').CloudinaryStorage;
 const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
