@@ -93,14 +93,12 @@ const PropertySchema = new mongoose.Schema({
   type: { type: String, required: true },
   title: { type: String, required: true },
   title_am: { type: String },       // Amharic translation
-  title_om: { type: String },       // Afan Oromo translation
   location: { type: String, required: true },
   size: { type: String, required: true },
   minPrice: { type: Number, required: true },
   maxPrice: { type: Number, required: true },
   description: { type: String, required: true },
   description_am: { type: String }, // Amharic translation
-  description_om: { type: String }, // Afan Oromo translation
   image: { type: String },
   created_at: { type: Date, default: Date.now }
 });
@@ -201,18 +199,14 @@ app.post('/properties', upload.single('image'), async (req, res) => {
     // 🔁 Automatically translate title and description
     const title_am = await translateText(title, 'am');
     const description_am = await translateText(description, 'am');
-    const title_om = await translateText(title, 'om');
-    const description_om = await translateText(description, 'om');
     const newProperty = new Property({
       seller_id,
       location,
       title,
       title_am,
-      title_om,
       size,
       description,
       description_am,
-      description_om,
       type,
       minPrice,
       maxPrice,
