@@ -219,42 +219,9 @@ res.status(400).json({ error: 'Failed to save property', details: err.message })
 }
 });
 app.get('/properties', async (req, res) => {
-const {
-location,
-minPrice,
-maxPrice,
-size,
-type,
-sortBy,
-order,
-page = 1,
-limit = 10
-} = req.query;
-
-let filter = {};
-if (location) filter.location = { $regex: location, $options: 'i' };
-if (minPrice || maxPrice) {
-if (minPrice) filter.minPrice = { $gte: parseInt(minPrice) };
-if (maxPrice) filter.maxPrice = { $lte: parseInt(maxPrice) };
-}
-if (size) filter.size = { $regex: size, $options: 'i' };
-if (type) filter.type = { $regex: type, $options: 'i' };
-
-const sortOptions = {};
-if (sortBy) sortOptions[sortBy] = order === 'desc' ? -1 : 1;
-const skip = (page - 1) * limit;
-
-try {
-const properties = await Property.find(filter)
-.sort(sortOptions)
-.skip(skip)
-.limit(parseInt(limit));
-res.status(200).json(properties);
-} catch (error) {
-res.status(500).json({ error: 'Failed to fetch properties', details: error.message });
-}
+  const properties = await Property.find();
+  res.json(properties);
 });
-
 app.delete('/properties', async (req, res) => {
 try {
 const result = await Property.deleteMany({});
