@@ -41,10 +41,15 @@ const app = express();
 // ========================
 // 🔹 Middleware
 // ========================
+const allowedOrigins = ['https://topiaminageba.vercel.app'];
 app.use(cors({
-  origin: 'https://topiaminageba.vercel.app',
-  methods: ['GET', 'POST', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS not allowed for this origin'));
+    }
+  },
   credentials: true
 }));
 
