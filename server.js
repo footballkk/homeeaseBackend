@@ -1,5 +1,5 @@
 // ========================
-// 🔹 Imports & Config
+// 🔹 Imports
 // ========================
 const express = require('express');
 const mongoose = require('mongoose');
@@ -11,10 +11,17 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const { v2: cloudinary } = require('cloudinary');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
-
-// Load environment variables
-dotenv.config();
 const axios = require('axios');
+
+// ========================
+// 🔹 Config & Initialization
+// ========================
+dotenv.config();
+const app = express();
+
+// ========================
+// 🔹 CORS Setup
+// ========================
 const allowedOrigins = ['https://topiaminageba.vercel.app'];
 app.use(cors({
   origin: function (origin, callback) {
@@ -33,33 +40,10 @@ app.use((req, res, next) => {
   next();
 });
 app.options('*', cors());
-async function translateText(text, targetLang = 'am') {
-  try {
-    const response = await axios.post('https://libretranslate.de/translate', {
-      q: text,
-      source: 'en',
-      target: targetLang,
-      format: 'text'
-    }, {
-      headers: { 'Content-Type': 'application/json' }
-    });
-
-    return response.data.translatedText;
-  } catch (error) {
-    console.error('Translation error:', error.message);
-    return text; // fallback to original text if translation fails
-  }
-}
-// ========================
-// 🔹 App Initialization
-// ========================
-const app = express();
 
 // ========================
 // 🔹 Middleware
 // ========================
-
-
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -73,7 +57,7 @@ cloudinary.config({
 });
 
 // ========================
-// 🔹 Multer + Cloudinary Storage
+// 🔹 Multer Storage Setup
 // ========================
 const fileFilter = (req, file, cb) => {
   const filetypes = /jpeg|jpg|png|gif|webp|bmp|jfif/;
@@ -94,8 +78,28 @@ const storage = new CloudinaryStorage({
     transformation: [{ width: 500, height: 500, crop: 'limit' }]
   }
 });
-
 const upload = multer({ storage: storage, fileFilter: fileFilter });
+
+// ========================
+// 🔹 Translation Helper
+// ========================
+async function translateText(text, targetLang = 'am') {
+  try {
+    const response = await axios.post('https://libretranslate.de/translate', {
+      q: text,
+      source: 'en',
+      target: targetLang,
+      format: 'text'
+    }, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    return response.data.translatedText;
+  } catch (error) {
+    console.error('Translation error:', error.message);
+    return text;
+  }
+}
 
 // ========================
 // 🔹 MongoDB Models
@@ -104,17 +108,18 @@ const PropertySchema = new mongoose.Schema({
   seller_id: { type: mongoose.Schema.Types.ObjectId, required: true },
   type: { type: String, required: true },
   title: { type: String, required: true },
-  title_am: { type: String },       // Amharic translation
+  title_am: { type: String },
   location: { type: String, required: true },
   size: { type: String, required: true },
   minPrice: { type: Number, required: true },
   maxPrice: { type: Number, required: true },
   description: { type: String, required: true },
-  description_am: { type: String }, // Amharic translation
+  description_am: { type: String },
   image: { type: String },
   created_at: { type: Date, default: Date.now }
 });
 const Property = mongoose.model('Property', PropertySchema);
+
 const UserSchema = new mongoose.Schema({
   full_name: String,
   email: { type: String, unique: true },
@@ -125,13 +130,13 @@ const UserSchema = new mongoose.Schema({
 const User = mongoose.model('User', UserSchema);
 
 // ========================
-// 🔹 Routes
+// 🔹 Routes - Payment
 // ========================
 const paymentRoutes = require('./routes/paymentRoutes');
 app.use('/api', paymentRoutes);
 
 // ========================
-// 🔹 Auth Routes
+// 🔹 Routes - Auth
 // ========================
 app.post('/register', async (req, res) => {
   try {
@@ -161,7 +166,7 @@ app.post('/login', async (req, res) => {
 });
 
 // ========================
-// 🔹 User Routes
+// 🔹 Routes - User
 // ========================
 app.get('/users', async (req, res) => {
   try {
@@ -191,7 +196,7 @@ app.delete('/users', async (req, res) => {
 });
 
 // ========================
-// 🔹 Property Routes
+// 🔹 Routes - Properties
 // ========================
 app.post('/properties', upload.single('image'), async (req, res) => {
   console.log('File received:', req.file);
@@ -208,9 +213,9 @@ app.post('/properties', upload.single('image'), async (req, res) => {
       maxPrice
     } = req.body;
     const imageUrl = req.file ? req.file.path : '';
-    // 🔁 Automatically translate title and description
     const title_am = await translateText(title, 'am');
     const description_am = await translateText(description, 'am');
+
     const newProperty = new Property({
       seller_id,
       location,
@@ -233,6 +238,7 @@ app.post('/properties', upload.single('image'), async (req, res) => {
     res.status(400).json({ error: 'Failed to save property', details: err.message });
   }
 });
+
 app.get('/properties', async (req, res) => {
   const {
     location,
@@ -280,7 +286,7 @@ app.delete('/properties', async (req, res) => {
 });
 
 // ========================
-// 🔹 Connect to MongoDB & Start Server
+// 🔹 MongoDB Connection & Server Start
 // ========================
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
@@ -288,6 +294,5 @@ mongoose.connect(process.env.MONGO_URI, {
 })
 .then(() => console.log("MongoDB connected"))
 .catch((err) => console.error("MongoDB connection error:", err));
-
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
