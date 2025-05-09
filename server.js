@@ -27,29 +27,9 @@ app.use(cors({
   },
   credentials: true
 }));
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "https://topiaminageba.vercel.app");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  next();
-});
-app.options('*', cors());
 async function translateText(text, targetLang = 'am') {
-  try {
-    const response = await axios.post('https://libretranslate.de/translate', {
-      q: text,
-      source: 'en',
-      target: targetLang,
-      format: 'text'
-    }, {
-      headers: { 'Content-Type': 'application/json' }
-    });
-
-    return response.data.translatedText;
-  } catch (error) {
-    console.error('Translation error:', error.message);
-    return text; // fallback to original text if translation fails
-  }
+  // Simulated/mock translation (Option 3)
+  return `[AM] ${text}`; // Just prefixes [AM] for demonstration
 }
 // ========================
 // 🔹 App Initialization
@@ -104,13 +84,13 @@ const PropertySchema = new mongoose.Schema({
   seller_id: { type: mongoose.Schema.Types.ObjectId, required: true },
   type: { type: String, required: true },
   title: { type: String, required: true },
-  title_am: { type: String },       // Amharic translation
+  // title_am: { type: String },       // Amharic translation
   location: { type: String, required: true },
   size: { type: String, required: true },
   minPrice: { type: Number, required: true },
   maxPrice: { type: Number, required: true },
   description: { type: String, required: true },
-  description_am: { type: String }, // Amharic translation
+  // description_am: { type: String }, // Amharic translation
   image: { type: String },
   created_at: { type: Date, default: Date.now }
 });
@@ -136,6 +116,10 @@ app.use('/api', paymentRoutes);
 app.post('/register', async (req, res) => {
   try {
     const { full_name, email, password, role } = req.body;
+     const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: 'Email already registered' });
+    }
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({ full_name, email, password: hashedPassword, role });
     await newUser.save();
@@ -215,10 +199,10 @@ app.post('/properties', upload.single('image'), async (req, res) => {
       seller_id,
       location,
       title,
-      title_am,
+      // title_am,
       size,
       description,
-      description_am,
+      // description_am,
       type,
       minPrice,
       maxPrice,
