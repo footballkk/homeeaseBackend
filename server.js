@@ -15,7 +15,24 @@ const { CloudinaryStorage } = require('multer-storage-cloudinary');
 // Load environment variables
 dotenv.config();
 const axios = require('axios');
-
+const allowedOrigins = ['https://topiaminageba.vercel.app'];
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS not allowed for this origin'));
+    }
+  },
+  credentials: true
+}));
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "https://topiaminageba.vercel.app");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  next();
+});
+app.options('*', cors());
 async function translateText(text, targetLang = 'am') {
   try {
     const response = await axios.post('https://libretranslate.de/translate', {
@@ -41,17 +58,7 @@ const app = express();
 // ========================
 // 🔹 Middleware
 // ========================
-const allowedOrigins = ['https://topiaminageba.vercel.app'];
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('CORS not allowed for this origin'));
-    }
-  },
-  credentials: true
-}));
+
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
