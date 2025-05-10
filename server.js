@@ -3,15 +3,15 @@
 // ========================
 const express = require('express');
 const mongoose = require('mongoose');
-const propertyRoutes = require('./routes/propertyRoutes');
+// const propertyRoutes = require('./routes/propertyRoutes');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-// const multer = require('multer');
-// const { v2: cloudinary } = require('cloudinary');
-// const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const multer = require('multer');
+const { v2: cloudinary } = require('cloudinary');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 // Load environment variables
 dotenv.config();
@@ -44,66 +44,66 @@ return `[AM] ${text}`; // Just prefixes [AM] for demonstration
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.use('/api', propertyRoutes);
+// app.use('/api', propertyRoutes);
 // ========================
 // 🔹 Cloudinary Config
 // ========================
-// cloudinary.config({
-// cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-// api_key: process.env.CLOUDINARY_API_KEY,
-// api_secret: process.env.CLOUDINARY_API_SECRET,
-// });
+cloudinary.config({
+cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+api_key: process.env.CLOUDINARY_API_KEY,
+api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // ========================
 // 🔹 Multer + Cloudinary Storage
 // ========================
-// const fileFilter = (req, file, cb) => {
-// const filetypes = /jpeg|jpg|png|gif|webp|bmp|jfif/;
-// const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-// const mimetype = filetypes.test(file.mimetype);
-// if (extname && mimetype) {
-// return cb(null, true);
-// } else {
-// cb('Error: Only image files are allowed!');
-// }
-// };
+const fileFilter = (req, file, cb) => {
+const filetypes = /jpeg|jpg|png|gif|webp|bmp|jfif/;
+const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+const mimetype = filetypes.test(file.mimetype);
+if (extname && mimetype) {
+return cb(null, true);
+} else {
+cb('Error: Only image files are allowed!');
+}
+};
 
-// const storage = new CloudinaryStorage({
-// cloudinary: cloudinary,
-// params: {
-// folder: 'property_images',
-// allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
-// transformation: [{ width: 500, height: 500, crop: 'limit' }]
-// }
-// });
+const storage = new CloudinaryStorage({
+cloudinary: cloudinary,
+params: {
+folder: 'property_images',
+allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+transformation: [{ width: 500, height: 500, crop: 'limit' }]
+}
+});
 
-// const upload = multer({ storage: storage, fileFilter: fileFilter });
+const upload = multer({ storage: storage, fileFilter: fileFilter });
 
 // ========================
 // 🔹 MongoDB Models
 // ========================
-// const PropertySchema = new mongoose.Schema({
-// seller_id: { type: mongoose.Schema.Types.ObjectId, required: true },
-// type: { type: String, required: true },
-// title: { type: String, required: true },
-// // title_am: { type: String },       // Amharic translation
-// location: { type: String, required: true },
-// size: { type: String, required: true },
-// minPrice: { type: Number, required: true },
-// maxPrice: { type: Number, required: true },
-// description: { type: String, required: true },
-// // description_am: { type: String }, // Amharic translation
-// image: { type: String },
-// created_at: { type: Date, default: Date.now }
-// });
-// const Property = mongoose.model('Property', PropertySchema);
-// const UserSchema = new mongoose.Schema({
-// full_name: String,
-// email: { type: String, unique: true },
-// password: String,
-// role: { type: String, enum: ['buyer', 'seller', 'admin'], default: 'buyer' },
-// created_at: { type: Date, default: Date.now }
-// });
+const PropertySchema = new mongoose.Schema({
+seller_id: { type: mongoose.Schema.Types.ObjectId, required: true },
+type: { type: String, required: true },
+title: { type: String, required: true },
+// title_am: { type: String },       // Amharic translation
+location: { type: String, required: true },
+size: { type: String, required: true },
+minPrice: { type: Number, required: true },
+maxPrice: { type: Number, required: true },
+description: { type: String, required: true },
+// description_am: { type: String }, // Amharic translation
+image: { type: String },
+created_at: { type: Date, default: Date.now }
+});
+const Property = mongoose.model('Property', PropertySchema);
+const UserSchema = new mongoose.Schema({
+full_name: String,
+email: { type: String, unique: true },
+password: String,
+role: { type: String, enum: ['buyer', 'seller', 'admin'], default: 'buyer' },
+created_at: { type: Date, default: Date.now }
+});
 const User = require('./models/User');
 
 // ========================
@@ -179,47 +179,47 @@ res.status(500).json({ error: err.message });
 // ========================
 // 🔹 Property Routes
 // ========================
-// app.post('/properties', upload.single('image'), async (req, res) => {
-// console.log('File received:', req.file);
-// console.log('Form body:', req.body);
-// try {
-// const {
-// seller_id,
-// location,
-// title,
-// size,
-// description,
-// type,
-// minPrice,
-// maxPrice
-// } = req.body;
-// const imageUrl = req.file ? req.file.path : '';
-// const existing = await Property.findOne({ title, seller_id });
-// if (existing) {
-// return res.status(400).json({ error: 'Property already posted with this title.' });
-// }
-// const newProperty = new Property({
-// seller_id,
-// location,
-// title,
-// // title_am,
-// size,
-// description,
-// // description_am,
-// type,
-// minPrice,
-// maxPrice,
-// image: imageUrl,
-// created_at: new Date()
-// });
-// const saved = await newProperty.save();
-// console.log('Saved property:', saved);
-// res.status(201).json({ message: 'Property added successfully', property: saved });
-// } catch (err) {
-// console.error('Error saving property:', err);
-// res.status(400).json({ error: 'Failed to save property', details: err.message });
-// }
-// });
+app.post('/properties', upload.single('image'), async (req, res) => {
+console.log('File received:', req.file);
+console.log('Form body:', req.body);
+try {
+const {
+seller_id,
+location,
+title,
+size,
+description,
+type,
+minPrice,
+maxPrice
+} = req.body;
+const imageUrl = req.file ? req.file.path : '';
+const existing = await Property.findOne({ title, seller_id });
+if (existing) {
+return res.status(400).json({ error: 'Property already posted with this title.' });
+}
+const newProperty = new Property({
+seller_id,
+location,
+title,
+// title_am,
+size,
+description,
+// description_am,
+type,
+minPrice,
+maxPrice,
+image: imageUrl,
+created_at: new Date()
+});
+const saved = await newProperty.save();
+console.log('Saved property:', saved);
+res.status(201).json({ message: 'Property added successfully', property: saved });
+} catch (err) {
+console.error('Error saving property:', err);
+res.status(400).json({ error: 'Failed to save property', details: err.message });
+}
+});
 app.get('/properties', async (req, res) => {
   const properties = await Property.find();
   res.json(properties);
