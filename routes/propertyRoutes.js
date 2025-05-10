@@ -1,3 +1,4 @@
+const express = require('express'); // ✅ Required to use express.Router()
 const { v2: cloudinary } = require('cloudinary');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const path = require('path');  // Add this import at the top of the file
