@@ -76,9 +76,9 @@ console.error('Error saving property:', err);
 res.status(400).json({ error: 'Failed to save property', details: err.message });
 }
 });
-router.get('/properties', async (req, res) => {
-  const properties = await Property.find();
-  res.json(properties);
-});
+// router.get('/properties', async (req, res) => {
+//   const properties = await Property.find();
+//   res.json(properties);
+// });
 
 module.exports = router;

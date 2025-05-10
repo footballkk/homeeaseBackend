@@ -220,10 +220,10 @@ res.status(500).json({ error: err.message });
 // res.status(400).json({ error: 'Failed to save property', details: err.message });
 // }
 // });
-// app.get('/properties', async (req, res) => {
-//   const properties = await Property.find();
-//   res.json(properties);
-// });
+app.get('/properties', async (req, res) => {
+  const properties = await Property.find();
+  res.json(properties);
+});
 app.delete('/properties', async (req, res) => {
 try {
 const result = await Property.deleteMany({});
