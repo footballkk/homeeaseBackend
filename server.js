@@ -104,7 +104,7 @@ app.use('/api', propertyRoutes);
 // role: { type: String, enum: ['buyer', 'seller', 'admin'], default: 'buyer' },
 // created_at: { type: Date, default: Date.now }
 // });
-const User = mongoose.model('User', UserSchema);
+const User = require('./models/User');
 
 // ========================
 // 🔹 Routes
