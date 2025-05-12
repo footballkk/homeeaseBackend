@@ -97,13 +97,13 @@ image: { type: String },
 created_at: { type: Date, default: Date.now }
 });
 const Property = mongoose.model('Property', PropertySchema);
-const UserSchema = new mongoose.Schema({
-full_name: String,
-email: { type: String, unique: true },
-password: String,
-role: { type: String, enum: ['buyer', 'seller', 'admin'], default: 'buyer' },
-created_at: { type: Date, default: Date.now }
-});
+// const UserSchema = new mongoose.Schema({
+// full_name: String,
+// email: { type: String, unique: true },
+// password: String,
+// role: { type: String, enum: ['buyer', 'seller', 'admin'], default: 'buyer' },
+// created_at: { type: Date, default: Date.now }
+// });
 const User = require('./models/User');
 
 // ========================
