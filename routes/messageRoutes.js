@@ -66,3 +66,5 @@ router.get('/conversation/:user1/:user2', authenticate, async (req, res) => {
   }
 });
 
+module.exports = router;
+
