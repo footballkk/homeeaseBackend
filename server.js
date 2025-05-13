@@ -10,6 +10,7 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
+const messageRoutes = require('./routes/messageRoutes');
 const { v2: cloudinary } = require('cloudinary');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
@@ -43,6 +44,9 @@ return `[AM] ${text}`; // Just prefixes [AM] for demonstration
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use('/api/messages', messageRoutes); // ✅ Mount message routes
+
+
 
 // app.use('/api', propertyRoutes);
 // ========================
@@ -97,13 +101,6 @@ image: { type: String },
 created_at: { type: Date, default: Date.now }
 });
 const Property = mongoose.model('Property', PropertySchema);
-// const UserSchema = new mongoose.Schema({
-// full_name: String,
-// email: { type: String, unique: true },
-// password: String,
-// role: { type: String, enum: ['buyer', 'seller', 'admin'], default: 'buyer' },
-// created_at: { type: Date, default: Date.now }
-// });
 const User = require('./models/User');
 
 // ========================
