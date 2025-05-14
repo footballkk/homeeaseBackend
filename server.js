@@ -130,18 +130,37 @@ console.log(req.body);
 });
 
 app.post('/login', async (req, res) => {
-try {
-const { email, password } = req.body;
-const user = await User.findOne({ email });
-if (!user) return res.status(404).json({ error: 'User not found' });
-const isMatch = await bcrypt.compare(password, user.password);
-if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
-const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
-res.json({ token, user: { id: user._id, full_name: user.full_name, role: user.role } });
-} catch (err) {
-res.status(500).json({ error: err.message });
-}
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+
+    // ✅ Updated response with top-level role
+    res.json({
+      token,
+      role: user.role, // <-- ✅ THIS IS NEEDED FOR RELIABLE FRONTEND NAVIGATION
+      user: {
+        _id: user._id,
+        full_name: user.full_name,
+        email: user.email,
+        role: user.role, // still included in user object
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
+
 
 // ========================
 // 🔹 User Routes
