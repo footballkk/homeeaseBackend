@@ -132,10 +132,10 @@ console.log(req.body);
 app.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-
     const user = await User.findOne({ email });
+    
     if (!user) return res.status(404).json({ error: 'User not found' });
-
+    
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
 
@@ -145,16 +145,14 @@ app.post('/login', async (req, res) => {
       { expiresIn: '1d' }
     );
 
-    // ✅ Updated response with top-level role
     res.json({
       token,
-      role: user.role, // <-- ✅ THIS IS NEEDED FOR RELIABLE FRONTEND NAVIGATION
+      role: user.role,
       user: {
         _id: user._id,
-        full_name: user.full_name,
-        email: user.email,
-        role: user.role, // still included in user object
-      },
+        name: user.full_name || user.name,
+        email: user.email
+      }
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
