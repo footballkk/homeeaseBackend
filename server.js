@@ -100,9 +100,8 @@ const upload = multer({ storage: storage, fileFilter: fileFilter });
 // image: { type: String },
 // created_at: { type: Date, default: Date.now }
 // });
-// const Property = mongoose.model('Property', PropertySchema);
+const Property = require('./models/Property');
 const User = require('./models/User');
-
 // ========================
 // 🔹 Routes
 // ========================
