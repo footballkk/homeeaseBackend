@@ -43,5 +43,23 @@ router.get('/:conversationId', verifyToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch messages' });
   }
 });
+// ✅ New: Get all messages between two users (for ChatPage)
+router.get('/:senderId/:receiverId/direct', verifyToken, async (req, res) => {
+  const { senderId, receiverId } = req.params;
+
+  try {
+    const messages = await Message.find({
+      $or: [
+        { sender: senderId, receiver: receiverId },
+        { sender: receiverId, receiver: senderId },
+      ],
+    }).sort({ createdAt: 1 });
+
+    res.status(200).json(messages);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch messages between users' });
+  }
+});
+
 
 module.exports = router;
