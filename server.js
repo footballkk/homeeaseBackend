@@ -10,6 +10,7 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
+const conversationRoutes = require('./routes/conversationRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const { v2: cloudinary } = require('cloudinary');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
@@ -41,12 +42,10 @@ return `[AM] ${text}`; // Just prefixes [AM] for demonstration
 // 🔹 Middleware
 // ========================
 
-
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use('/api/messages', messageRoutes); // ✅ Mount message routes
-
-
+app.use('/api/conversations', conversationRoutes);
+app.use('/api/messages', messageRoutes);
 
 // app.use('/api', propertyRoutes);
 // ========================
@@ -86,20 +85,6 @@ const upload = multer({ storage: storage, fileFilter: fileFilter });
 // ========================
 // 🔹 MongoDB Models
 // ========================
-// const PropertySchema = new mongoose.Schema({
-// seller_id: { type: mongoose.Schema.Types.ObjectId, required: true },
-// type: { type: String, required: true },
-// title: { type: String, required: true },
-// // title_am: { type: String },       // Amharic translation
-// location: { type: String, required: true },
-// size: { type: String, required: true },
-// minPrice: { type: Number, required: true },
-// maxPrice: { type: Number, required: true },
-// description: { type: String, required: true },
-// // description_am: { type: String }, // Amharic translation
-// image: { type: String },
-// created_at: { type: Date, default: Date.now }
-// });
 const Property = require('./models/Property');
 const User = require('./models/User');
 // ========================
