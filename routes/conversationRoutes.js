@@ -4,10 +4,15 @@ const Conversation = require('../models/Conversation');
 const { verifyToken } = require('../middleware/auth'); // adjust path if needed
 
 // ✅ Create or get a conversation between buyer and seller for a property
-router.post('/', verifyToken, async (req, res) => {
+router.post('/findOrCreate', verifyToken, async (req, res) => {
   try {
     const { sellerId, propertyId } = req.body;
     const buyerId = req.user.id;
+
+    // Prevent self-conversation
+    if (buyerId === sellerId) {
+      return res.status(400).json({ message: "Cannot create conversation with self." });
+    }
 
     // Check if conversation already exists
     let conversation = await Conversation.findOne({
@@ -26,6 +31,7 @@ router.post('/', verifyToken, async (req, res) => {
 
     res.status(200).json(conversation);
   } catch (err) {
+    console.error('Error in findOrCreate:', err);
     res.status(500).json({ error: 'Failed to create/find conversation' });
   }
 });

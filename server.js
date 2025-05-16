@@ -3,7 +3,6 @@
 // ========================
 const express = require('express');
 const mongoose = require('mongoose');
-// const propertyRoutes = require('./routes/propertyRoutes');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
