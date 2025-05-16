@@ -15,6 +15,11 @@ const ConversationSchema = new mongoose.Schema(
     },
   },
   { timestamps: true }
+
 );
 
+ConversationSchema.index(
+  { participants: 1, property: 1 },
+  { unique: true }
+);
 module.exports = mongoose.model('Conversation', ConversationSchema);
