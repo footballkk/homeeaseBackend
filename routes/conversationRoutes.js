@@ -5,6 +5,8 @@ const { verifyToken } = require('../middleware/auth'); // adjust path if needed
 
 // ✅ Create or get a conversation between buyer and seller for a property
 router.post('/findOrCreate', verifyToken, async (req, res) => {
+  
+   console.log('📥 Incoming conversation data:', req.body);
   try {
     const { sellerId, propertyId } = req.body;
     const buyerId = req.user.id;
