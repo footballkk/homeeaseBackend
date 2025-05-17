@@ -5,40 +5,29 @@ const { verifyToken } = require('../middleware/auth'); // adjust path if needed
 
 // ✅ Create or get a conversation between buyer and seller for a property
 router.post('/findOrCreate', verifyToken, async (req, res) => {
-  console.log('📥 Incoming conversation data:', req.body);
+  
+   console.log('📥 Incoming conversation data:', req.body);
   try {
     const { sellerId, propertyId } = req.body;
     const buyerId = req.user.id;
 
+    // Prevent self-conversation
     if (buyerId === sellerId) {
       return res.status(400).json({ message: "Cannot create conversation with self." });
     }
 
-    let query = {
+    // Check if conversation already exists
+    let conversation = await Conversation.findOne({
       participants: { $all: [buyerId, sellerId] },
-    };
+      property: propertyId,
+    });
 
-    // Add property to query only if propertyId is provided
-    if (propertyId) {
-      query.property = propertyId;
-    } else {
-      // Optional: You may want to ensure that property field does not exist or is null for inbox conversations
-      query.property = { $exists: false };
-    }
-
-    let conversation = await Conversation.findOne(query);
-
+    // If not, create one
     if (!conversation) {
-      // Create conversation object conditionally adding propertyId
-      const newConvData = {
+      conversation = new Conversation({
         participants: [buyerId, sellerId],
-      };
-
-      if (propertyId) {
-        newConvData.property = propertyId;
-      }
-
-      conversation = new Conversation(newConvData);
+        property: propertyId,
+      });
       await conversation.save();
     }
 
@@ -48,7 +37,6 @@ router.post('/findOrCreate', verifyToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to create/find conversation' });
   }
 });
-
 
 // ✅ Get all conversations for the logged-in user
 router.get('/', verifyToken, async (req, res) => {
