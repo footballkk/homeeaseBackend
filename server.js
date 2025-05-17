@@ -166,7 +166,10 @@ res.json({ message: 'All users deleted successfully', result });
 res.status(500).json({ error: err.message });
 }
 });
-
+//ping roots
+app.get('/ping', (req, res) => {
+  res.send('pong');
+});
 // ========================
 // 🔹 Property Routes
 // ========================
