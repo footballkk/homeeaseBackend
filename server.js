@@ -18,9 +18,10 @@ const { CloudinaryStorage } = require('multer-storage-cloudinary');
 dotenv.config();
 const axios = require('axios');
 const app = express();
+const allowedOrigins = ['https://topiaminageba.vercel.app'];
 app.use(cors({
-  origin: 'https://topiaminageba.vercel.app',
-  credentials: true,
+  origin: allowedOrigins,
+  credentials: true, // If you're using cookies or HTTP auth
 }));
 async function translateText(text, targetLang = 'am') {
 // Simulated/mock translation (Option 3)
