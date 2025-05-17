@@ -61,6 +61,11 @@ router.get('/:conversationId', verifyToken, async (req, res) => {
 router.get('/:senderId/:receiverId/direct', verifyToken, async (req, res) => {
   const { senderId, receiverId } = req.params;
 
+  if (!senderId || !receiverId) {
+    console.error('Missing senderId or receiverId:', senderId, receiverId);
+    return res.status(400).json({ message: 'Missing senderId or receiverId' });
+  }
+
   try {
     const messages = await Message.find({
       $or: [
@@ -75,5 +80,6 @@ router.get('/:senderId/:receiverId/direct', verifyToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch messages between users' });
   }
 });
+
 
 module.exports = router;
