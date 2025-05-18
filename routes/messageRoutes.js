@@ -80,6 +80,26 @@ router.get('/:senderId/:receiverId/direct', verifyToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch messages between users' });
   }
 });
+// PUT /api/messages/markAsSeen/:conversationId
+// PUT /api/messages/markAsSeen/:conversationId
+router.put('/markAsSeen/:conversationId', verifyToken, async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    const userId = req.user.id;
+
+    await Message.updateMany(
+      { conversationId, receiver: userId, seen: false },
+      { $set: { seen: true } }
+    );
+
+    res.status(200).json({ message: 'Messages marked as seen' });
+  } catch (err) {
+    console.error('Error marking messages as seen:', err);
+    res.status(500).json({ error: 'Failed to mark as seen' });
+  }
+});
+
+
 
 
 module.exports = router;
