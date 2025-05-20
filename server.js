@@ -1,16 +1,19 @@
 // ========================
 // 🔹 Imports & Config
 // ========================
+
+const dotenv = require('dotenv');
+dotenv.config();
+const crypto = require('crypto'); // ✅ this uses the built-in module
+const nodemailer = require('nodemailer');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const User = require('./models/User'); 
-const crypto = require('crypto'); // ✅ this uses the built-in module
 const conversationRoutes = require('./routes/conversationRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const { v2: cloudinary } = require('cloudinary');
@@ -152,14 +155,17 @@ app.post('/forgot-password', async (req, res) => {
     await user.save();
 
     const transporter = nodemailer.createTransport({
-      service: 'Gmail',
+      host: process.env.EMAIL_HOST,
+      port: parseInt(process.env.EMAIL_PORT, 10),
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
     });
 
-    const resetLink = `https://yourfrontendurl.com/reset-password/${token}`;
+    // You need this next:
+    const resetLink = `https://topiaminageba.vercel.app/${token}`;
+
     await transporter.sendMail({
       to: email,
       subject: 'Password Reset',
@@ -167,9 +173,10 @@ app.post('/forgot-password', async (req, res) => {
     });
 
     res.json({ message: 'Reset link sent to your email.' });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Internal error' });
+    console.error('Error in /forgot-password:', err);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
