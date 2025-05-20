@@ -166,7 +166,7 @@ const transporter = nodemailer.createTransport({
 
 
     // You need this next:
-    const resetLink = `http://localhost:5001/${token}`;
+    const resetLink = `https://topiaminageba.vercel.app/${token}`;
 
     await transporter.sendMail({
       to: email,
