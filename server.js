@@ -9,6 +9,8 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
+const User = require('./models/User'); 
+const crypto = require('crypto'); // ✅ this uses the built-in module
 const conversationRoutes = require('./routes/conversationRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const { v2: cloudinary } = require('cloudinary');
@@ -136,6 +138,67 @@ app.post('/login', async (req, res) => {
   }
 });
 
+// ========================
+// 🔹 Forgot Password Route
+// ========================
+app.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: 'Email not found' });
+
+    const token = crypto.randomBytes(32).toString('hex');
+    user.resetToken = token;
+    user.resetTokenExpiry = Date.now() + 3600000; // 1 hour
+    await user.save();
+
+    const transporter = nodemailer.createTransport({
+      service: 'Gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const resetLink = `https://yourfrontendurl.com/reset-password/${token}`;
+    await transporter.sendMail({
+      to: email,
+      subject: 'Password Reset',
+      html: `<p>Click <a href="${resetLink}">here</a> to reset your password.</p>`,
+    });
+
+    res.json({ message: 'Reset link sent to your email.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Internal error' });
+  }
+});
+
+// ========================
+// 🔹 Reset Password Route
+// ========================
+app.post('/reset-password/:token', async (req, res) => {
+  const { token } = req.params;
+  const { newPassword } = req.body;
+  try {
+    const user = await User.findOne({
+      resetToken: token,
+      resetTokenExpiry: { $gt: Date.now() },
+    });
+
+    if (!user) return res.status(400).json({ message: 'Token invalid or expired' });
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.resetToken = undefined;
+    user.resetTokenExpiry = undefined;
+    await user.save();
+
+    res.json({ message: 'Password reset successful' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error resetting password' });
+  }
+});
 
 // ========================
 // 🔹 User Routes
