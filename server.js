@@ -151,36 +151,35 @@ app.post('/forgot-password', async (req, res) => {
 
     const token = crypto.randomBytes(32).toString('hex');
     user.resetToken = token;
-    user.resetTokenExpiry = Date.now() + 3600000; // 1 hour
+    user.resetTokenExpiry = Date.now() + 3600000;
     await user.save();
 
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: parseInt(process.env.EMAIL_PORT, 10),
-  secure: true, // use SSL for port 465
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+    const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: parseInt(process.env.EMAIL_PORT, 10),
+      secure: parseInt(process.env.EMAIL_PORT, 10) === 465, // adjust secure based on port
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
 
-
-    // You need this next:
-    const resetLink = `https://topiaminageba.vercel.app/${token}`;
+    const resetLink = `https://topiaminageba.vercel.app/reset-password/${token}`;
 
     await transporter.sendMail({
-      to: email,
+      from: process.env.EMAIL_USER,
+      to: user.email,
       subject: 'Password Reset',
       html: `<p>Click <a href="${resetLink}">here</a> to reset your password.</p>`,
     });
 
-    res.json({ message: 'Reset link sent to your email.' });
-
+    res.json({ message: 'Reset email sent successfully' });
   } catch (err) {
-    console.error('Error in /forgot-password:', err);
+    console.error('Error in /forgot-password:', err); // log the actual error
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 
 // ========================
 // 🔹 Reset Password Route
@@ -204,6 +203,7 @@ app.post('/reset-password/:token', async (req, res) => {
 
     res.json({ message: 'Password reset successful' });
   } catch (err) {
+    console.error('Error in /reset-password:', err);
     res.status(500).json({ message: 'Error resetting password' });
   }
 });
