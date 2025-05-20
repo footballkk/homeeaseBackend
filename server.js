@@ -81,7 +81,6 @@ const upload = multer({ storage: storage, fileFilter: fileFilter });
 // 🔹 MongoDB Models
 // ========================
 const Property = require('./models/Property');
-const User = require('./models/User');
 // ========================
 // 🔹 Routes
 // ========================
