@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const Conversation = require('../models/Conversation'); // Adjust path as needed
+const Conversation = require('../models/Conversation');
+const { verifyToken } = require('../middleware/auth'); // adjust path if needed
 const router = express.Router();
 
 // ✅ Create or get a conversation between buyer and seller for a property
