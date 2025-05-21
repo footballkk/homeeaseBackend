@@ -18,7 +18,7 @@ router.post('/findOrCreate', verifyToken, async (req, res) => {
     const propertyObjId = propertyId ? new mongoose.Types.ObjectId(propertyId) : null;
 
     // Prevent self-conversation
-    if (buyerId === sellerObjId) {
+    if (buyerObjId === sellerObjId) {
       return res.status(400).json({ message: "Cannot create conversation with self." });
     }
 
@@ -27,7 +27,7 @@ router.post('/findOrCreate', verifyToken, async (req, res) => {
       participants: { $all: [buyerObjId, sellerObjId] },
     };
 
-    if (propertyId) {
+    if (propertyObjId) {
       query.property = propertyObjId;
     }
 
@@ -40,8 +40,8 @@ router.post('/findOrCreate', verifyToken, async (req, res) => {
         participants: [buyerObjId, sellerObjIds],
       };
 
-      if (propertyId) {
-        newConvData.property = propertyId;
+      if (propertyObjId) {
+        newConvData.property = propertyObjId;
       }
 
       conversation = new Conversation(newConvData);
