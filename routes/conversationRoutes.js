@@ -7,24 +7,16 @@ const { verifyToken } = require('../middleware/auth'); // adjust path if needed
 // ✅ Create or get a conversation between buyer and seller for a property
 router.post('/findOrCreate', verifyToken, async (req, res) => {
   console.log('📥 Incoming conversation data:', req.body);
-
   try {
     const { sellerId, propertyId } = req.body;
-    const buyerId = req.user?.id;
+    const buyerId = req.user.id;
 
-    // ✅ Defensive checks
-    if (!buyerId || !sellerId) {
-      return res.status(400).json({ error: 'Missing buyer or seller ID' });
-    }
-
+    // Prevent self-conversation
     if (buyerId === sellerId) {
-      return res.status(400).json({ error: "Cannot create conversation with self." });
+      return res.status(400).json({ message: "Cannot create conversation with self." });
     }
 
-    if (propertyId && !mongoose.Types.ObjectId.isValid(propertyId)) {
-      return res.status(400).json({ error: "Invalid property ID." });
-    }
-
+    // Build query dynamically
     let query = {
       participants: { $all: [buyerId, sellerId] },
     };
@@ -33,8 +25,10 @@ router.post('/findOrCreate', verifyToken, async (req, res) => {
       query.property = propertyId;
     }
 
+    // Find existing conversation
     let conversation = await Conversation.findOne(query);
 
+    // If not found, create a new one
     if (!conversation) {
       const newConvData = {
         participants: [buyerId, sellerId],
@@ -46,22 +40,14 @@ router.post('/findOrCreate', verifyToken, async (req, res) => {
 
       conversation = new Conversation(newConvData);
       await conversation.save();
-
-      // ✅ Safely populate
-      if (propertyId) {
-        await conversation.populate('property');
-      }
     }
 
     res.status(200).json(conversation);
   } catch (err) {
-    console.error('❌ Error in findOrCreate:', err.message, err.stack);
+    console.error('❌ Error in findOrCreate:', err);
     res.status(500).json({ error: 'Failed to create/find conversation' });
   }
 });
-
-
-
 
 // ✅ Get all conversations for the logged-in user
 router.get('/', verifyToken, async (req, res) => {
