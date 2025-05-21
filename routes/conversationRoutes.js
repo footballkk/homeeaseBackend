@@ -11,43 +11,58 @@ router.post('/findOrCreate', verifyToken, async (req, res) => {
     const { sellerId, propertyId } = req.body;
     const buyerId = req.user.id;
 
+    console.log('🧾 Parsed IDs - buyerId:', buyerId, 'sellerId:', sellerId, 'propertyId:', propertyId);
+
     // Prevent self-conversation
     if (buyerId === sellerId) {
+      console.warn('⚠️ Buyer is trying to create conversation with self.');
       return res.status(400).json({ message: "Cannot create conversation with self." });
     }
 
-    // Build query dynamically
-    let query = {
-      participants: { $all: [buyerId, sellerId] },
-    };
-
-    if (propertyId) {
-      query.property = propertyId;
+    // Validate presence of required IDs
+    if (!sellerId || !buyerId) {
+      console.error('❌ Missing sellerId or buyerId');
+      return res.status(400).json({ message: 'Missing sellerId or buyerId' });
     }
 
-    // Find existing conversation
+    // Validate ObjectId format (optional but useful)
+    const isValidObjectId = (id) => /^[0-9a-fA-F]{24}$/.test(id);
+    if (!isValidObjectId(sellerId) || !isValidObjectId(buyerId) || (propertyId && !isValidObjectId(propertyId))) {
+      console.error('❌ Invalid MongoDB ObjectId format');
+      return res.status(400).json({ message: 'Invalid ID format' });
+    }
+
+    // Build query dynamically
+    const query = {
+      participants: { $all: [buyerId, sellerId] },
+    };
+    if (propertyId) query.property = propertyId;
+
+    console.log('🔍 Searching with query:', query);
+
     let conversation = await Conversation.findOne(query);
 
-    // If not found, create a new one
     if (!conversation) {
       const newConvData = {
         participants: [buyerId, sellerId],
       };
+      if (propertyId) newConvData.property = propertyId;
 
-      if (propertyId) {
-        newConvData.property = propertyId;
-      }
+      console.log('🆕 Creating new conversation with:', newConvData);
 
       conversation = new Conversation(newConvData);
       await conversation.save();
     }
 
+    console.log('✅ Conversation returned:', conversation);
     res.status(200).json(conversation);
+
   } catch (err) {
-    console.error('❌ Error in findOrCreate:', err);
+    console.error('❌ Error in findOrCreate:', err.stack || err.message || err);
     res.status(500).json({ error: 'Failed to create/find conversation' });
   }
 });
+
 
 
 // ✅ GET all conversations for the logged-in user
