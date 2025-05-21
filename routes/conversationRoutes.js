@@ -4,6 +4,7 @@ const Conversation = require('../models/Conversation');
 const { verifyToken } = require('../middleware/auth'); // adjust path if needed
 
 // ✅ Create or get a conversation between buyer and seller for a property
+// ✅ Create or get a conversation between buyer and seller for a property
 router.post('/findOrCreate', verifyToken, async (req, res) => {
   console.log('📥 Incoming conversation data:', req.body);
   try {
@@ -39,6 +40,9 @@ router.post('/findOrCreate', verifyToken, async (req, res) => {
 
       conversation = new Conversation(newConvData);
       await conversation.save();
+
+      // ✅ Populate property after creating
+      await conversation.populate('property');
     }
 
     res.status(200).json(conversation);
@@ -47,6 +51,7 @@ router.post('/findOrCreate', verifyToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to create/find conversation' });
   }
 });
+
 
 
 // ✅ Get all conversations for the logged-in user
