@@ -17,26 +17,18 @@ router.post('/findOrCreate', verifyToken, async (req, res) => {
     }
 
     // Build query dynamically
-    let query = {
+    const query = {
       participants: { $all: [buyerId, sellerId] },
+      property: propertyId, // ✅ match schema
     };
 
-    if (propertyId) {
-      query.property = propertyId;
-    }
-
-    // Find existing conversation
     let conversation = await Conversation.findOne(query);
 
-    // If not found, create a new one
     if (!conversation) {
       const newConvData = {
         participants: [buyerId, sellerId],
+        property: propertyId, // ✅ match schema
       };
-
-      if (propertyId) {
-        newConvData.property = propertyId;
-      }
 
       conversation = new Conversation(newConvData);
       await conversation.save();
@@ -45,9 +37,10 @@ router.post('/findOrCreate', verifyToken, async (req, res) => {
     res.status(200).json(conversation);
   } catch (err) {
     console.error('❌ Error in findOrCreate:', err);
-    res.status(500).json({ error: 'Failed to create/find conversation' });
+    res.status(500).json({ error: 'Failed to create/find conversation', detail: err.message });
   }
 });
+
 
 // ✅ Get all conversations for the logged-in user
 router.get('/', verifyToken, async (req, res) => {
