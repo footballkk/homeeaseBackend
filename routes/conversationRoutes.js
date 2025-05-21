@@ -1,53 +1,56 @@
 const express = require('express');
+const mongoose = require('mongoose');
+const Conversation = require('../models/conversation'); // Adjust path as needed
 const router = express.Router();
-const Conversation = require('../models/Conversation');
-const { verifyToken } = require('../middleware/auth'); // adjust path if needed
 
 // ✅ Create or get a conversation between buyer and seller for a property
 // ✅ Create or get a conversation between buyer and seller for a property
 router.post('/findOrCreate', verifyToken, async (req, res) => {
-  console.log('📥 Incoming conversation data:', req.body);
   try {
     const { sellerId, propertyId } = req.body;
     const buyerId = req.user.id;
 
-    // Prevent self-conversation
-    if (buyerId === sellerId) {
-      return res.status(400).json({ message: "Cannot create conversation with self." });
+    // ✅ Validate IDs
+    if (!mongoose.Types.ObjectId.isValid(sellerId) || !mongoose.Types.ObjectId.isValid(buyerId)) {
+      return res.status(400).json({ error: 'Invalid seller or buyer ID' });
     }
 
-    // Build query dynamically
-    let query = {
-      participants: { $all: [buyerId, sellerId] },
-    };
-
-    if (propertyId) {
-      query.property = propertyId;
+    if (propertyId && !mongoose.Types.ObjectId.isValid(propertyId)) {
+      return res.status(400).json({ error: 'Invalid property ID' });
     }
 
-    // Find existing conversation
-    let conversation = await Conversation.findOne(query);
+    // ✅ Convert to ObjectId
+    const buyerObjId = new mongoose.Types.ObjectId(buyerId);
+    const sellerObjId = new mongoose.Types.ObjectId(sellerId);
+    const propertyObjId = propertyId ? new mongoose.Types.ObjectId(propertyId) : null;
 
-    // If not found, create a new one
+    // ✅ Ensure participants are in consistent order (optional but clean)
+    const participants = [buyerObjId, sellerObjId].sort();
+
+    // ✅ Check for existing conversation
+    let conversation = await Conversation.findOne({
+      participants: participants,
+      property: propertyObjId,
+    });
+
     if (!conversation) {
-      const newConvData = {
-        participants: [buyerId, sellerId],
-      };
+      // ✅ Create new conversation
+      conversation = new Conversation({
+        participants,
+        property: propertyObjId,
+        lastMessage: '',
+      });
 
-      if (propertyId) {
-        newConvData.property = propertyId;
-      }
-
-      conversation = new Conversation(newConvData);
       await conversation.save();
     }
 
     res.status(200).json(conversation);
   } catch (err) {
-    console.error('❌ Error in findOrCreate:', err);
-    res.status(500).json({ error: 'Failed to create/find conversation' });
+    console.error('❌ Error in /findOrCreate:', err);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 // ✅ Get all conversations for the logged-in user
 router.get('/', verifyToken, async (req, res) => {
