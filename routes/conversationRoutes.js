@@ -1,6 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const Conversation = require('../models/conversation'); // Adjust path as needed
+const Conversation = require('../models/Conversation'); // Adjust path as needed
 const router = express.Router();
 
 // ✅ Create or get a conversation between buyer and seller for a property
