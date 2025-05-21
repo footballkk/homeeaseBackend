@@ -50,20 +50,29 @@ router.post('/findOrCreate', verifyToken, async (req, res) => {
 });
 
 // ✅ Get all conversations for the logged-in user
-router.get('/', verifyToken, async (req, res) => {
+// GET a conversation between two specific users
+router.get('/:userId/:receiverId', verifyToken, async (req, res) => {
   try {
-    const userId = req.user.id;
-    const conversations = await Conversation.find({
-      participants: userId,
-    })
-      .sort({ updatedAt: -1 })
-      .populate('property')
-      .populate('participants', 'name email');
+    const { userId, receiverId } = req.params;
 
-    res.status(200).json(conversations);
+    let conversation = await Conversation.findOne({
+      participants: { $all: [userId, receiverId] },
+    });
+
+    // If not found, create a new one
+    if (!conversation) {
+      conversation = new Conversation({
+        participants: [userId, receiverId],
+      });
+      await conversation.save();
+    }
+
+    res.status(200).json(conversation);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch conversations' });
+    console.error('Failed to fetch or create conversation:', err);
+    res.status(500).json({ error: 'Server error fetching conversation' });
   }
 });
+
 
 module.exports = router;
