@@ -49,8 +49,26 @@ router.post('/findOrCreate', verifyToken, async (req, res) => {
   }
 });
 
-// ✅ Get all conversations for the logged-in user
-// GET a conversation between two specific users
+
+// ✅ GET all conversations for the logged-in user
+router.get('/', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const conversations = await Conversation.find({
+      participants: userId,
+    })
+      .sort({ updatedAt: -1 })
+      .populate('property')
+      .populate('participants', 'name email');
+
+    res.status(200).json(conversations);
+  } catch (err) {
+    console.error('Error fetching conversations:', err);
+    res.status(500).json({ error: 'Failed to fetch conversations' });
+  }
+});
+
+// ✅ GET (or create) a conversation between two specific users
 router.get('/:userId/:receiverId', verifyToken, async (req, res) => {
   try {
     const { userId, receiverId } = req.params;
@@ -59,7 +77,7 @@ router.get('/:userId/:receiverId', verifyToken, async (req, res) => {
       participants: { $all: [userId, receiverId] },
     });
 
-    // If not found, create a new one
+    // If conversation doesn't exist, create one
     if (!conversation) {
       conversation = new Conversation({
         participants: [userId, receiverId],
@@ -73,6 +91,7 @@ router.get('/:userId/:receiverId', verifyToken, async (req, res) => {
     res.status(500).json({ error: 'Server error fetching conversation' });
   }
 });
+
 
 
 module.exports = router;
