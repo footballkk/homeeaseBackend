@@ -11,24 +11,18 @@ router.post('/findOrCreate', verifyToken, async (req, res) => {
     const { sellerId, propertyId } = req.body;
     const buyerId = req.user.id;
 
-    
-    // ✅ Ensure all IDs are valid ObjectId instances
-    const buyerObjId = new mongoose.Types.ObjectId(buyerId);
-    const sellerObjId = new mongoose.Types.ObjectId(sellerId);
-    const propertyObjId = propertyId ? new mongoose.Types.ObjectId(propertyId) : null;
-
     // Prevent self-conversation
-    if (buyerObjId === sellerObjId) {
+    if (buyerId === sellerId) {
       return res.status(400).json({ message: "Cannot create conversation with self." });
     }
 
     // Build query dynamically
     let query = {
-      participants: { $all: [buyerObjId, sellerObjId] },
+      participants: { $all: [buyerId, sellerId] },
     };
 
-    if (propertyObjId) {
-      query.property = propertyObjId;
+    if (propertyId) {
+      query.property = propertyId;
     }
 
     // Find existing conversation
@@ -37,11 +31,11 @@ router.post('/findOrCreate', verifyToken, async (req, res) => {
     // If not found, create a new one
     if (!conversation) {
       const newConvData = {
-        participants: [buyerObjId, sellerObjIds],
+        participants: [buyerId, sellerId],
       };
 
-      if (propertyObjId) {
-        newConvData.property = propertyObjId;
+      if (propertyId) {
+        newConvData.property = propertyId;
       }
 
       conversation = new Conversation(newConvData);
