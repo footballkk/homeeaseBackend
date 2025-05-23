@@ -16,11 +16,11 @@ const multer = require('multer');
 const User = require('./models/User'); 
 const conversationRoutes = require('./routes/conversationRoutes');
 const messageRoutes = require('./routes/messageRoutes');
+const contactRoutes = require('./routes/contactRoutes');
 const { v2: cloudinary } = require('cloudinary');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 // Load environment variables
-dotenv.config();
 const axios = require('axios');
 const app = express();
 const allowedOrigins = ['https://topiaminageba.vercel.app'];
@@ -44,6 +44,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use('/api/conversations', conversationRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api', contactRoutes);
 
 // app.use('/api', propertyRoutes);
 // ========================
